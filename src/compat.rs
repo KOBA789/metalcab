@@ -375,6 +375,26 @@ impl Lattice {
         unsafe { Node::from_ptr(mecab_lattice_get_end_nodes(self.as_ptr(), pos)) }
     }
 
+    pub fn set_boundary_constraint(
+        &mut self,
+        pos: usize,
+        boundary_constraint_type: BoundaryConstraintType,
+    ) {
+        let boundary_type = boundary_constraint_type.to_raw();
+        unsafe { mecab_lattice_set_boundary_constraint(self.0.as_ptr(), pos, boundary_type) }
+    }
+
+    pub fn set_feature_constraint<'a, 'b: 'a>(&'a mut self, begin_pos: usize, end_pos: usize, feature: &'b [u8]) {
+        unsafe {
+            mecab_lattice_set_feature_constraint(
+                self.0.as_ptr(),
+                begin_pos,
+                end_pos,
+                feature.as_ptr() as *const _,
+            )
+        }
+    }
+
     pub fn size(&self) -> usize {
         unsafe { mecab_lattice_get_size(self.as_ptr()) }
     }
@@ -400,6 +420,38 @@ impl Drop for Lattice {
 
 unsafe impl Send for Lattice {}
 unsafe impl Sync for Lattice {}
+
+#[derive(Debug, Clone, Copy)]
+pub enum BoundaryConstraintType {
+    AnyBoundary,
+    TokenBoundary,
+    InsideToken,
+}
+
+impl BoundaryConstraintType {
+    fn to_raw(&self) -> c_int {
+        match self {
+            BoundaryConstraintType::AnyBoundary => MECAB_ANY_BOUNDARY,
+            BoundaryConstraintType::TokenBoundary => MECAB_TOKEN_BOUNDARY,
+            BoundaryConstraintType::InsideToken => MECAB_INSIDE_TOKEN,
+        }
+    }
+
+    fn from_raw(raw: c_int) -> Self {
+        match raw {
+            MECAB_ANY_BOUNDARY => BoundaryConstraintType::AnyBoundary,
+            MECAB_TOKEN_BOUNDARY => BoundaryConstraintType::TokenBoundary,
+            MECAB_INSIDE_TOKEN => BoundaryConstraintType::InsideToken,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Default for BoundaryConstraintType {
+    fn default() -> Self {
+        BoundaryConstraintType::AnyBoundary
+    }
+}
 
 pub struct DictionaryInfo<'a>(mecab_dictionary_info_t, PhantomData<&'a ()>);
 
