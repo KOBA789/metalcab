@@ -407,7 +407,7 @@ impl Lattice {
         &'a mut self,
         begin_pos: usize,
         end_pos: usize,
-        feature: &'b [u8],
+        feature: &'b CStr,
     ) {
         unsafe {
             mecab_lattice_set_feature_constraint(
