@@ -17,7 +17,8 @@ impl Model {
     /// cause of the errors.
     pub fn create(args: &[&CStr]) -> Result<Self, MecabError> {
         // FIXME: once CStr becomes extern type, we can just transmut it
-        let args = args.iter()
+        let args = args
+            .iter()
             .map(|&arg| arg.as_ptr() as *mut c_char)
             .collect::<Vec<_>>();
         let argc = args.len() as c_int;
@@ -137,7 +138,8 @@ pub struct Tagger<'model>(NonNull<mecab_t>, PhantomData<&'model ()>);
 impl Tagger<'static> {
     pub fn create(args: &[&CStr]) -> Result<Self, MecabError> {
         // FIXME: once CStr becomes extern type, we can just transmut it
-        let args = args.iter()
+        let args = args
+            .iter()
             .map(|&arg| arg.as_ptr() as *mut c_char)
             .collect::<Vec<_>>();
         let argc = args.len() as c_int;
