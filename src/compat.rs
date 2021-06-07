@@ -25,7 +25,7 @@ impl Model {
         assert!(argc >= 0);
         assert_eq!(argc as usize, args.len());
         let ptr = unsafe { mecab_model_new(argc, args.as_ptr() as *mut *mut c_char) };
-        let ptr = NonNull::new(ptr).ok_or_else(|| MecabError::last())?;
+        let ptr = NonNull::new(ptr).ok_or_else(MecabError::last)?;
         Ok(Model(ptr))
     }
 
@@ -35,7 +35,7 @@ impl Model {
     /// cause of the errors.
     pub fn create2(arg: &CStr) -> Result<Self, MecabError> {
         let ptr = unsafe { mecab_model_new2(arg.as_ptr() as *const c_char) };
-        let ptr = NonNull::new(ptr).ok_or_else(|| MecabError::last())?;
+        let ptr = NonNull::new(ptr).ok_or_else(MecabError::last)?;
         Ok(Model(ptr))
     }
 
@@ -45,7 +45,7 @@ impl Model {
     #[allow(non_snake_case)]
     pub fn createTagger(&self) -> Result<Tagger, MecabError> {
         let tagger = unsafe { Tagger::from_ptr(mecab_model_new_tagger(self.as_ptr())) };
-        let tagger = tagger.ok_or_else(|| MecabError::last())?;
+        let tagger = tagger.ok_or_else(MecabError::last)?;
         Ok(tagger)
     }
 
@@ -53,7 +53,7 @@ impl Model {
     #[allow(non_snake_case)]
     pub fn createLattice(&self) -> Result<Lattice, MecabError> {
         let lattice = unsafe { Lattice::from_ptr(mecab_model_new_lattice(self.as_ptr())) };
-        let lattice = lattice.ok_or_else(|| MecabError::last())?;
+        let lattice = lattice.ok_or_else(MecabError::last)?;
         Ok(lattice)
     }
 
@@ -146,13 +146,13 @@ impl Tagger<'static> {
         assert!(argc >= 0);
         assert_eq!(argc as usize, args.len());
         let ptr = unsafe { mecab_new(argc, args.as_ptr() as *mut *mut c_char) };
-        let ptr = NonNull::new(ptr).ok_or_else(|| MecabError::last())?;
+        let ptr = NonNull::new(ptr).ok_or_else(MecabError::last)?;
         Ok(Tagger(ptr, PhantomData))
     }
 
     pub fn create2(arg: &CStr) -> Result<Self, MecabError> {
         let ptr = unsafe { mecab_new2(arg.as_ptr() as *const c_char) };
-        let ptr = NonNull::new(ptr).ok_or_else(|| MecabError::last())?;
+        let ptr = NonNull::new(ptr).ok_or_else(MecabError::last)?;
         Ok(Tagger(ptr, PhantomData))
     }
 }
@@ -324,6 +324,7 @@ unsafe impl<'model> Sync for Tagger<'model> {}
 pub struct Lattice(NonNull<mecab_lattice_t>);
 
 impl Lattice {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let ptr = unsafe { mecab_lattice_new() };
         let ptr = NonNull::new(ptr).expect("mecab_lattice_new() failed");
