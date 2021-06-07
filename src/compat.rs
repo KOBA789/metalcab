@@ -212,6 +212,15 @@ impl<'model> Tagger<'model> {
         }
     }
 
+    pub fn parse_lattice(&self, lattice: &'model mut Lattice) -> Result<(), MecabError> {
+        let ret = unsafe { mecab_parse_lattice(self.as_ptr(), lattice.as_ptr()) };
+        if ret == 0 {
+            Err(MecabError::last())
+        } else {
+            Ok(())
+        }
+    }
+
     #[allow(non_snake_case)]
     pub fn parseToNode_cstr(&mut self, s: &CStr) -> Result<&Node, MecabError> {
         let ptr = unsafe { mecab_sparse_tonode(self.as_ptr(), s.as_ptr()) };
@@ -375,19 +384,34 @@ impl Lattice {
         unsafe { Node::from_ptr(mecab_lattice_get_end_nodes(self.as_ptr(), pos)) }
     }
 
+    pub fn set_sentence<'a, 'b: 'a>(&'a mut self, sentence: &'b [u8]) {
+        unsafe {
+            mecab_lattice_set_sentence2(
+                self.as_ptr(),
+                sentence.as_ptr() as *const _,
+                sentence.len(),
+            )
+        }
+    }
+
     pub fn set_boundary_constraint(
         &mut self,
         pos: usize,
         boundary_constraint_type: BoundaryConstraintType,
     ) {
         let boundary_type = boundary_constraint_type.to_raw();
-        unsafe { mecab_lattice_set_boundary_constraint(self.0.as_ptr(), pos, boundary_type) }
+        unsafe { mecab_lattice_set_boundary_constraint(self.as_ptr(), pos, boundary_type) }
     }
 
-    pub fn set_feature_constraint<'a, 'b: 'a>(&'a mut self, begin_pos: usize, end_pos: usize, feature: &'b [u8]) {
+    pub fn set_feature_constraint<'a, 'b: 'a>(
+        &'a mut self,
+        begin_pos: usize,
+        end_pos: usize,
+        feature: &'b [u8],
+    ) {
         unsafe {
             mecab_lattice_set_feature_constraint(
-                self.0.as_ptr(),
+                self.as_ptr(),
                 begin_pos,
                 end_pos,
                 feature.as_ptr() as *const _,
